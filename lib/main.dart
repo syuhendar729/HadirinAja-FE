@@ -1,0 +1,100 @@
+// File main.dart
+import 'package:flutter/material.dart';
+import 'package:hadirinaja_fe/services/auth_service.dart';
+import 'package:hadirinaja_fe/utils/session_manager.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+
+import 'pages/main_page.dart';
+import 'pages/login_page.dart';
+
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+  runApp(const MyApp());
+}
+
+
+class MyApp extends StatefulWidget {
+    const MyApp({super.key});
+
+    @override
+    State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+    Widget? startPage;
+
+    @override
+    void initState() {
+        super.initState();
+        checkLogin();
+    }
+
+
+    Future<void> checkLogin() async {
+        final token =
+            await SessionManager.getToken();
+
+        final loginTime =
+            await SessionManager.getLoginTime();
+
+        if (token == null ||
+            loginTime == null) {
+            setState(() {
+                startPage = const LoginPage();
+            });
+
+            return;
+        }
+
+        final now =
+            DateTime.now().millisecondsSinceEpoch;
+
+        const sessionDuration = 3600000;
+        // const sessionDuration = 60000;
+
+        final isExpired =
+            now - loginTime > sessionDuration;
+
+        if (isExpired) {
+            try {
+                await AuthService.logout();
+            } catch (e) {
+                print(e);
+            }
+
+            await SessionManager.clearSession();
+
+            setState(() {
+                startPage = const LoginPage();
+            });
+        } else {
+            setState(() {
+                startPage = const MainPage();
+            });
+        }
+    }
+
+
+    @override
+    Widget build(BuildContext context) {
+        return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'HadirinAja',
+            themeMode: ThemeMode.light,
+            theme: ThemeData(
+                primarySwatch: Colors.blue,
+            ),
+            home: startPage ??
+                const Scaffold(
+                    body: Center(
+                        child:
+                            CircularProgressIndicator(),
+                    ),
+                ),
+        );
+    }
+}
+
