@@ -1,11 +1,11 @@
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../config/app_config.dart';
 import '../services/attendance_service.dart';
 
 class CheckInPage extends StatefulWidget {
@@ -18,6 +18,10 @@ class CheckInPage extends StatefulWidget {
 enum _CheckInStatus { preparing, camera, preview, submitting, success, failed }
 
 class _CheckInPageState extends State<CheckInPage> with WidgetsBindingObserver {
+  static const String _developmentLocationName = 'Institut Teknologi Sumatera';
+  static const double _developmentLatitude = -5.3600000;
+  static const double _developmentLongitude = 105.3150000;
+
   CameraController? _cameraController;
   XFile? _selfie;
   Position? _position;
@@ -27,7 +31,39 @@ class _CheckInPageState extends State<CheckInPage> with WidgetsBindingObserver {
   bool get _isCameraReady =>
       _cameraController != null && _cameraController!.value.isInitialized;
 
+  bool get _shouldMirrorCamera =>
+      _cameraController?.description.lensDirection == CameraLensDirection.front;
+
+  double? get _latitude {
+    if (AppConfig.isDevelopment) {
+      return _developmentLatitude;
+    }
+
+    return _position?.latitude;
+  }
+
+  double? get _longitude {
+    if (AppConfig.isDevelopment) {
+      return _developmentLongitude;
+    }
+
+    return _position?.longitude;
+  }
+
+  String get _attendanceLocation {
+    if (AppConfig.isDevelopment) {
+      return _developmentLocationName;
+    }
+
+    return _locationLabel;
+  }
+
   String get _locationLabel {
+    if (AppConfig.isDevelopment) {
+      return '${_developmentLatitude.toStringAsFixed(6)}, '
+          '${_developmentLongitude.toStringAsFixed(6)}';
+    }
+
     final position = _position;
     if (position == null) {
       return 'Location unavailable';
@@ -94,6 +130,10 @@ class _CheckInPageState extends State<CheckInPage> with WidgetsBindingObserver {
     final cameraPermission = await Permission.camera.request();
     if (!cameraPermission.isGranted) {
       _fail('Camera access is required to take your attendance selfie.');
+      return;
+    }
+
+    if (AppConfig.isDevelopment) {
       return;
     }
 
@@ -269,8 +309,16 @@ class _CheckInPageState extends State<CheckInPage> with WidgetsBindingObserver {
 
   Future<void> _submitAttendance() async {
     final selfie = _selfie;
+    final latitude = _latitude;
+    final longitude = _longitude;
+
     if (selfie == null) {
       _fail('Please take a selfie before continuing.');
+      return;
+    }
+
+    if (latitude == null || longitude == null) {
+      _fail('Location is unavailable. Please try again.');
       return;
     }
 
@@ -284,9 +332,11 @@ class _CheckInPageState extends State<CheckInPage> with WidgetsBindingObserver {
       print('Uploaded Image URL: $imageUrl');
       await AttendanceService.createAttendance(
         status: 'HADIR',
-        location: _locationLabel,
+        location: _attendanceLocation,
         notes: 'Check-in selfie verified',
         imageUrl: imageUrl,
+        latitude: latitude,
+        longitude: longitude,
       );
 
       if (!mounted) {
@@ -347,6 +397,7 @@ class _CheckInPageState extends State<CheckInPage> with WidgetsBindingObserver {
               key: const ValueKey('preview'),
               selfie: _selfie!,
               location: _locationLabel,
+              mirrorImage: _shouldMirrorCamera,
               onRetake: _retake,
               onContinue: _submitAttendance,
             ),
@@ -504,6 +555,9 @@ class _CameraFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cameraController = controller;
+    final shouldMirror =
+        cameraController?.description.lensDirection ==
+        CameraLensDirection.front;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(28),
@@ -518,9 +572,8 @@ class _CameraFrame extends StatelessWidget {
           children: [
             if (cameraController != null &&
                 cameraController.value.isInitialized)
-              Transform(
-                alignment: Alignment.center,
-                transform: Matrix4.rotationY(math.pi),
+              Transform.flip(
+                flipX: false,
                 child: CameraPreview(cameraController),
               )
             else
@@ -585,6 +638,7 @@ class _FaceGuide extends StatelessWidget {
 class _PreviewView extends StatelessWidget {
   final XFile selfie;
   final String location;
+  final bool mirrorImage;
   final VoidCallback onRetake;
   final VoidCallback onContinue;
 
@@ -592,6 +646,7 @@ class _PreviewView extends StatelessWidget {
     super.key,
     required this.selfie,
     required this.location,
+    required this.mirrorImage,
     required this.onRetake,
     required this.onContinue,
   });
@@ -615,7 +670,10 @@ class _PreviewView extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.file(File(selfie.path), fit: BoxFit.cover),
+                  Transform.flip(
+                    flipX: false,
+                    child: Image.file(File(selfie.path), fit: BoxFit.cover),
+                  ),
                   Positioned(
                     left: 16,
                     right: 16,

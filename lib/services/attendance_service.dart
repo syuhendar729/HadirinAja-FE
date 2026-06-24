@@ -11,7 +11,6 @@ import '../utils/session_manager.dart';
 import 'api_client.dart';
 
 class AttendanceService {
-
   // ==============================================================
   // Get Attendance
   // ==============================================================
@@ -40,6 +39,8 @@ class AttendanceService {
     required String location,
     String notes = 'On time',
     required String imageUrl,
+    required double latitude,
+    required double longitude,
   }) async {
     print('createAttendance - Image URL: $imageUrl');
     final response = await ApiClient.post(
@@ -48,7 +49,9 @@ class AttendanceService {
         'status': status,
         'location': location,
         'notes': notes,
-        'url_image': imageUrl, 
+        'url_image': imageUrl,
+        'latitude': latitude,
+        'longitude': longitude,
       },
     );
 
