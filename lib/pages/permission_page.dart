@@ -288,11 +288,11 @@ class _PermissionPageState extends State<PermissionPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FC),
+      backgroundColor: const Color(AppColors.background),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFFF6F8FC),
-        foregroundColor: const Color(0xFF111827),
+        backgroundColor: const Color(AppColors.background),
+        foregroundColor: const Color(AppColors.textPrimary),
         title: const Text(
           'Leave',
           style: TextStyle(fontWeight: FontWeight.w800),
@@ -392,7 +392,7 @@ class _PreparingView extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFF111827),
+                color: Color(AppColors.textPrimary),
               ),
             ),
             const SizedBox(height: 8),
@@ -401,7 +401,7 @@ class _PreparingView extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 15,
-                color: Color(0xFF6B7280),
+                color: Color(AppColors.textSecondary),
                 height: 1.4,
               ),
             ),
@@ -486,7 +486,7 @@ class _CameraFrame extends StatelessWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: const Color(0xFF111827),
+          color: const Color(AppColors.textPrimary),
           borderRadius: BorderRadius.circular(28),
         ),
         child: Stack(
@@ -611,7 +611,7 @@ class _PreviewView extends StatelessWidget {
                   icon: const Icon(Icons.refresh),
                   label: const Text('Retake'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF334155),
+                    foregroundColor: const Color(AppColors.textPrimary),
                     side: const BorderSide(color: Color(0xFFCBD5E1)),
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
@@ -667,7 +667,7 @@ class _NotesField extends StatelessWidget {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+          borderSide: const BorderSide(color: Color(AppColors.border)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
@@ -763,7 +763,7 @@ class _ResultView extends StatelessWidget {
             title,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Color(0xFF111827),
+              color: Color(AppColors.textPrimary),
               fontSize: 30,
               height: 1.12,
               fontWeight: FontWeight.w900,
@@ -774,7 +774,7 @@ class _ResultView extends StatelessWidget {
             message,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Color(0xFF6B7280),
+              color: Color(AppColors.textSecondary),
               height: 1.45,
               fontSize: 15,
             ),
@@ -847,7 +847,7 @@ class _StepHeader extends StatelessWidget {
           _IconBadge(
             icon: icon,
             backgroundColor: const Color(0xFFFFF7ED),
-            foregroundColor: const Color(0xFFF59E0B),
+            foregroundColor: const Color(AppColors.warning),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -857,7 +857,7 @@ class _StepHeader extends StatelessWidget {
                 Text(
                   label.toUpperCase(),
                   style: const TextStyle(
-                    color: Color(0xFFF59E0B),
+                    color: Color(AppColors.warning),
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.8,
@@ -867,7 +867,7 @@ class _StepHeader extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    color: Color(0xFF111827),
+                    color: Color(AppColors.textPrimary),
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                   ),
@@ -876,7 +876,7 @@ class _StepHeader extends StatelessWidget {
                 Text(
                   subtitle,
                   style: const TextStyle(
-                    color: Color(0xFF6B7280),
+                    color: Color(AppColors.textSecondary),
                     fontSize: 13,
                     height: 1.25,
                   ),
@@ -904,17 +904,17 @@ class _InfoPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(color: const Color(AppColors.border)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFFF59E0B), size: 20),
+          Icon(icon, color: const Color(AppColors.warning), size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               label,
               style: const TextStyle(
-                color: Color(0xFF374151),
+                color: Color(AppColors.textPrimary),
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),

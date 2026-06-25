@@ -11,6 +11,7 @@ import 'pages/login_page.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  await AppConfig.init();
   runApp(const MyApp());
 }
 
@@ -77,13 +78,19 @@ class _MyAppState extends State<MyApp> {
       themeMode: ThemeMode.light,
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: const Color(AppColors.background),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(AppColors.primary),
+          primary: const Color(AppColors.primary),
+          surface: const Color(AppColors.card),
+        ),
         fontFamily: AppFonts.body,
         appBarTheme: const AppBarTheme(
           titleTextStyle: TextStyle(
             fontFamily: AppFonts.display,
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF111827),
+            color: Color(AppColors.textPrimary),
           ),
         ),
       ),

@@ -8,9 +8,9 @@ import '../widgets/home_header.dart';
 import 'check_in_page.dart';
 import 'permission_page.dart';
 
-const _teal = Color(AppColors.teal);
-const _line = Color(0xFFE5E7EB);
-const _primary = Color(0xFF2563EB);
+const _teal = Color(AppColors.primary);
+const _line = Color(AppColors.border);
+const _primary = Color(AppColors.primary);
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -75,7 +75,7 @@ class _HomePageState extends State<HomePage> {
                         title: 'Leave',
                         subtitle: 'Request leave when you cannot attend.',
                         icon: Icons.event_available_rounded,
-                        color: const Color(0xFFF59E0B),
+                        color: const Color(AppColors.warning),
                         onTap: () => _open(
                           const PermissionPage(),
                           'Leave request submitted',

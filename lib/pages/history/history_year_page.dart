@@ -6,11 +6,11 @@ import '../../models/attendance_model.dart';
 import '../../services/attendance_service.dart';
 import '../../widgets/history/attendance_legend.dart';
 
-const _teal = Color(AppColors.teal);
-const _ink = Color(0xFF111827);
-const _muted = Color(0xFF6B7280);
-const _line = Color(0xFFE5E7EB);
-const _primary = Color(0xFF2563EB);
+const _teal = Color(AppColors.primary);
+const _ink = Color(AppColors.textPrimary);
+const _muted = Color(AppColors.textSecondary);
+const _line = Color(AppColors.border);
+const _primary = Color(AppColors.primary);
 const _days = [
   'Monday',
   'Tuesday',
@@ -508,7 +508,7 @@ class _HistoryYearPageState extends State<HistoryYearPage> {
       decoration: BoxDecoration(
         color: onTeal
             ? Colors.white.withValues(alpha: 0.14)
-            : const Color(0xFFF7F7F8),
+            : const Color(AppColors.background),
         border: border
             ? Border.all(
                 color: onTeal ? Colors.white.withValues(alpha: 0.28) : _line,

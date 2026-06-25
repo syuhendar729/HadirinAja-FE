@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_config.dart';
+
 class ActionCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -13,7 +15,7 @@ class ActionCard extends StatelessWidget {
     required this.subtitle,
     required this.icon,
     required this.onTap,
-    this.color = const Color(0xFF2563EB),
+    this.color = const Color(AppColors.primary),
   });
 
   @override
@@ -21,13 +23,17 @@ class ActionCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
 
     return Material(
-      color: Colors.white,
+      color: const Color(AppColors.card),
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
-        child: Padding(
+        child: Ink(
           padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            border: Border.all(color: const Color(AppColors.border)),
+            borderRadius: BorderRadius.circular(14),
+          ),
           child: Row(
             children: [
               Container(
@@ -49,7 +55,7 @@ class ActionCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: text.bodyLarge?.copyWith(
-                        color: const Color(0xFF111827),
+                        color: const Color(AppColors.textPrimary),
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                       ),
@@ -60,7 +66,7 @@ class ActionCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: text.bodySmall?.copyWith(
-                        color: const Color(0xFF6B7280),
+                        color: const Color(AppColors.textSecondary),
                         fontSize: 14,
                         height: 1.3,
                       ),
@@ -71,7 +77,7 @@ class ActionCard extends StatelessWidget {
               const SizedBox(width: 10),
               const Icon(
                 Icons.chevron_right_rounded,
-                color: Color(0xFF9CA3AF),
+                color: Color(AppColors.textSecondary),
                 size: 28,
               ),
             ],

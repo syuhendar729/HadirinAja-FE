@@ -5,10 +5,10 @@ import 'history/history_year_page.dart';
 import 'home_page.dart';
 import 'profile_page.dart';
 
-const _teal = Color(AppColors.teal);
-const _inactive = Color(0xFF6B7280);
-const _bar = Color(0xFFFAF9F6);
-const _pill = Color(0xFFE5E5E5);
+const _teal = Color(AppColors.primary);
+const _inactive = Color(AppColors.textSecondary);
+const _bar = Color(AppColors.background);
+const _pill = Color(AppColors.border);
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});

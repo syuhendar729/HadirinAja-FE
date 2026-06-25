@@ -1,6 +1,8 @@
 // File: attendance_model.dart
 import 'package:flutter/material.dart';
 
+import '../config/app_config.dart';
+
 enum AttendanceStatus { present, late, leave, absent }
 
 class AttendanceModel {
@@ -75,39 +77,39 @@ extension AttendanceStatusExtension on AttendanceStatus {
   Color get color {
     switch (this) {
       case AttendanceStatus.present:
-        return const Color(0xFFBBF7D0);
+        return const Color(AppColors.success);
       case AttendanceStatus.late:
-        return const Color(0xFFE5E7EB);
+        return const Color(AppColors.late);
       case AttendanceStatus.leave:
-        return const Color(0xFFFDE68A);
+        return const Color(AppColors.warning);
       case AttendanceStatus.absent:
-        return const Color(0xFFFCA5A5);
+        return const Color(AppColors.danger);
     }
   }
 
   Color get foregroundColor {
     switch (this) {
       case AttendanceStatus.present:
-        return const Color(0xFF166534);
+        return Colors.white;
       case AttendanceStatus.late:
-        return const Color(0xFF374151);
+        return Colors.white;
       case AttendanceStatus.leave:
-        return const Color(0xFF92400E);
+        return const Color(AppColors.textPrimary);
       case AttendanceStatus.absent:
-        return const Color(0xFF991B1B);
+        return Colors.white;
     }
   }
 
   Color get accentColor {
     switch (this) {
       case AttendanceStatus.present:
-        return const Color(0xFF22C55E);
+        return const Color(AppColors.success);
       case AttendanceStatus.late:
-        return const Color(0xFF6B7280);
+        return const Color(AppColors.late);
       case AttendanceStatus.leave:
-        return const Color(0xFFF59E0B);
+        return const Color(AppColors.warning);
       case AttendanceStatus.absent:
-        return const Color(0xFFDC2626);
+        return const Color(AppColors.danger);
     }
   }
 

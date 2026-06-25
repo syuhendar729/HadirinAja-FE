@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../config/app_config.dart';
 import '../../models/attendance_model.dart';
 
 class AttendanceLegend extends StatelessWidget {
@@ -18,11 +19,13 @@ class AttendanceLegend extends StatelessWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: onTeal ? Colors.white.withValues(alpha: 0.14) : Colors.white,
+        color: onTeal
+            ? Colors.white.withValues(alpha: 0.14)
+            : const Color(AppColors.card),
         border: Border.all(
           color: onTeal
               ? Colors.white.withValues(alpha: 0.28)
-              : const Color(0xFFE5E7EB),
+              : const Color(AppColors.border),
         ),
         borderRadius: BorderRadius.circular(14),
       ),
@@ -76,7 +79,9 @@ class _LegendItem extends StatelessWidget {
             Text(
               label,
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: onTeal ? Colors.white : const Color(0xFF374151),
+                color: onTeal
+                    ? Colors.white
+                    : const Color(AppColors.textPrimary),
                 fontWeight: FontWeight.w600,
               ),
             ),

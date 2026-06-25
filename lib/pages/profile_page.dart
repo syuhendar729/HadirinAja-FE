@@ -8,10 +8,10 @@ import '../services/user_service.dart';
 import '../utils/session_manager.dart';
 import 'login_page.dart';
 
-const _teal = Color(AppColors.teal);
-const _ink = Color(0xFF111827);
-const _muted = Color(0xFF6B7280);
-const _line = Color(0xFFE5E7EB);
+const _teal = Color(AppColors.primary);
+const _ink = Color(AppColors.textPrimary);
+const _muted = Color(AppColors.textSecondary);
+const _line = Color(AppColors.border);
 const _stats = [
   (AttendanceStatus.present, 'Present', Icons.check_circle_outline_rounded),
   (AttendanceStatus.late, 'Late', Icons.schedule_rounded),
@@ -200,7 +200,7 @@ class _ProfilePageState extends State<ProfilePage> {
           : const Icon(Icons.logout_rounded),
       label: Text(_isLoggingOut ? 'Logging out...' : 'Logout'),
       style: FilledButton.styleFrom(
-        backgroundColor: const Color(0xFF071952),
+        backgroundColor: const Color(AppColors.danger),
         disabledBackgroundColor: const Color(0xFFEBF4F6),
         foregroundColor: Colors.white,
         minimumSize: const Size.fromHeight(54),
