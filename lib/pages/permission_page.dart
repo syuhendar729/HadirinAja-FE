@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../config/app_config.dart';
+import '../models/attendance_model.dart';
 import '../services/attendance_service.dart';
 
 class PermissionPage extends StatefulWidget {
@@ -126,7 +127,7 @@ class _PermissionPageState extends State<PermissionPage>
 
     final cameraPermission = await Permission.camera.request();
     if (!cameraPermission.isGranted) {
-      _fail('Camera access is required to capture permission proof.');
+      _fail('Camera access is required to capture leave proof.');
       return;
     }
 
@@ -136,7 +137,7 @@ class _PermissionPageState extends State<PermissionPage>
 
     final locationPermission = await Permission.locationWhenInUse.request();
     if (!locationPermission.isGranted) {
-      _fail('Location access is required to submit permission.');
+      _fail('Location access is required to submit leave.');
       return;
     }
 
@@ -207,7 +208,7 @@ class _PermissionPageState extends State<PermissionPage>
         _status = _PermissionStatus.preview;
       });
     } catch (_) {
-      _fail('We could not capture your permission proof. Please try again.');
+      _fail('We could not capture your leave proof. Please try again.');
     }
   }
 
@@ -229,12 +230,12 @@ class _PermissionPageState extends State<PermissionPage>
     final notes = _notesController.text.trim();
 
     if (proofImage == null) {
-      _fail('Please capture your permission proof before submitting.');
+      _fail('Please capture your leave proof before submitting.');
       return;
     }
 
     if (notes.isEmpty) {
-      _fail('Please add notes for your permission request.');
+      _fail('Please add notes for your leave request.');
       return;
     }
 
@@ -251,7 +252,7 @@ class _PermissionPageState extends State<PermissionPage>
     try {
       final imageUrl = await AttendanceService.uploadImage(proofImage.path);
       await AttendanceService.createAttendance(
-        status: 'IZIN',
+        status: AttendanceStatus.absent.apiValue,
         location: _attendanceLocation,
         notes: notes,
         imageUrl: imageUrl,
@@ -293,7 +294,7 @@ class _PermissionPageState extends State<PermissionPage>
         backgroundColor: const Color(0xFFF6F8FC),
         foregroundColor: const Color(0xFF111827),
         title: const Text(
-          'Permission',
+          'Leave',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
         centerTitle: true,
@@ -304,7 +305,7 @@ class _PermissionPageState extends State<PermissionPage>
           child: switch (_status) {
             _PermissionStatus.preparing => const _PreparingView(
               key: ValueKey('preparing'),
-              title: 'Preparing permission request',
+              title: 'Preparing leave request',
               subtitle: 'Checking camera and location access.',
             ),
             _PermissionStatus.camera => _CameraView(
@@ -324,19 +325,19 @@ class _PermissionPageState extends State<PermissionPage>
             ),
             _PermissionStatus.submitting => const _PreparingView(
               key: ValueKey('submitting'),
-              title: 'Submitting permission',
-              subtitle: 'Uploading your proof and permission details.',
+              title: 'Submitting leave',
+              subtitle: 'Uploading your proof and leave details.',
             ),
             _PermissionStatus.success => _ResultView(
               key: const ValueKey('success'),
               title: 'Waiting for approval',
-              message: 'Your permission request has been submitted.',
+              message: 'Your leave request has been submitted.',
               primaryLabel: 'Home',
               onPrimary: () => _goHome(success: true),
             ),
             _PermissionStatus.failed => _ResultView(
               key: const ValueKey('failed'),
-              title: 'Permission Failed',
+              title: 'Leave Request Failed',
               message: _errorMessage ?? 'Something went wrong.',
               primaryLabel: 'Try Again',
               onPrimary: _startFlow,
@@ -434,7 +435,7 @@ class _CameraView extends StatelessWidget {
       child: Column(
         children: [
           _StepHeader(
-            label: 'Permission proof',
+            label: 'Leave proof',
             title: 'Capture your proof document',
             subtitle: 'Take a clear photo of your letter or document.',
             icon: Icons.description_outlined,
@@ -455,8 +456,8 @@ class _CameraView extends StatelessWidget {
               icon: const Icon(Icons.camera_alt_outlined),
               label: const Text('Take Proof'),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFF59E0B),
-                foregroundColor: Colors.white,
+                backgroundColor: AttendanceStatus.leave.accentColor,
+                foregroundColor: AttendanceStatus.leave.foregroundColor,
                 disabledBackgroundColor: const Color(0xFFCBD5E1),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -577,7 +578,7 @@ class _PreviewView extends StatelessWidget {
         children: [
           _StepHeader(
             label: 'Review',
-            title: 'Check your permission proof',
+            title: 'Check your leave proof',
             subtitle: 'Submit when the document and notes are complete.',
             icon: Icons.fact_check_outlined,
           ),
@@ -626,8 +627,8 @@ class _PreviewView extends StatelessWidget {
                   icon: const Icon(Icons.send_outlined),
                   label: const Text('Submit'),
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFFF59E0B),
-                    foregroundColor: Colors.white,
+                    backgroundColor: AttendanceStatus.leave.accentColor,
+                    foregroundColor: AttendanceStatus.leave.foregroundColor,
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
@@ -670,7 +671,10 @@ class _NotesField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: Color(0xFFF59E0B), width: 1.4),
+          borderSide: BorderSide(
+            color: AttendanceStatus.leave.accentColor,
+            width: 1.4,
+          ),
         ),
       ),
     );
@@ -729,7 +733,9 @@ class _ResultView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isError ? const Color(0xFFDC2626) : const Color(0xFFF59E0B);
+    final color = isError
+        ? AttendanceStatus.absent.accentColor
+        : AttendanceStatus.leave.accentColor;
     final backgroundColor = isError
         ? const Color(0xFFFFF1F2)
         : const Color(0xFFFFF7ED);
@@ -780,7 +786,9 @@ class _ResultView extends StatelessWidget {
               onPressed: onPrimary,
               style: FilledButton.styleFrom(
                 backgroundColor: color,
-                foregroundColor: Colors.white,
+                foregroundColor: isError
+                    ? Colors.white
+                    : AttendanceStatus.leave.foregroundColor,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),

@@ -1,9 +1,20 @@
-// File profile_page.dart
-
 import 'package:flutter/material.dart';
 
+import '../models/attendance_model.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
+
+const _bg = Color(0xFFF7F7F8);
+const _ink = Color(0xFF111827);
+const _muted = Color(0xFF6B7280);
+const _line = Color(0xFFE5E7EB);
+const _primary = Color(0xFF2563EB);
+const _stats = [
+  (AttendanceStatus.present, 'Present', Icons.check_circle_outline_rounded),
+  (AttendanceStatus.late, 'Late', Icons.schedule_rounded),
+  (AttendanceStatus.leave, 'Leave', Icons.description_outlined),
+  (AttendanceStatus.absent, 'Absent', Icons.cancel_outlined),
+];
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -13,115 +24,72 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  late final Future<UserModel> _userFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _userFuture = UserService.getUser();
-  }
+  late final Future<UserModel> _future = UserService.getUser();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FB),
+      backgroundColor: _bg,
       appBar: AppBar(
         title: const Text('Profile'),
         centerTitle: true,
-        backgroundColor: const Color(0xFFF6F8FB),
-        foregroundColor: const Color(0xFF111827),
         elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: _bg,
+        foregroundColor: _ink,
       ),
-      body: SafeArea(
-        top: false,
-        child: FutureBuilder<UserModel>(
-          future: _userFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
+      body: FutureBuilder<UserModel>(
+        future: _future,
+        builder: (context, snap) {
+          if (snap.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snap.hasError) return _message(snap.error.toString());
+          if (snap.data == null) return _message('User data is empty');
 
-            if (snapshot.hasError) {
-              return _ProfileError(message: snapshot.error.toString());
-            }
-
-            final user = snapshot.data;
-
-            if (user == null) {
-              return const _ProfileError(message: 'User data is empty');
-            }
-
-            return ListView(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-              children: [
-                _ProfileHeader(user: user),
-                const SizedBox(height: 22),
-                const _SectionTitle(
-                  title: 'Attendance summary',
-                  subtitle: 'Your current attendance overview',
-                ),
-                const SizedBox(height: 12),
-                _AttendanceStatsGrid(total: user.total),
-              ],
-            );
-          },
-        ),
+          final user = snap.data!;
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            children: [
+              _profileHeader(user),
+              const SizedBox(height: 12),
+              _infoSection(user),
+              const SizedBox(height: 12),
+              _attendanceSection(user.total),
+            ],
+          );
+        },
       ),
     );
   }
-}
 
-class _ProfileHeader extends StatelessWidget {
-  final UserModel user;
+  Widget _profileHeader(UserModel user) {
+    final text = Theme.of(context).textTheme;
+    final image = user.profilePicture;
 
-  const _ProfileHeader({required this.user});
-
-  @override
-  Widget build(BuildContext context) {
-    final profilePicture = user.profilePicture;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
+    return _section(
       child: Row(
         children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEAF2FF),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: profilePicture == null || profilePicture.isEmpty
-                ? const Icon(
-                    Icons.person_rounded,
-                    size: 42,
-                    color: Color(0xFF2563EB),
-                  )
-                : Image.network(
-                    profilePicture,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
-                      Icons.person_rounded,
-                      size: 42,
-                      color: Color(0xFF2563EB),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              width: 64,
+              height: 64,
+              color: const Color(0xFFEFF6FF),
+              child: image == null || image.isEmpty
+                  ? const Icon(Icons.person_rounded, color: _primary, size: 36)
+                  : Image.network(
+                      image,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const Icon(
+                        Icons.person_rounded,
+                        color: _primary,
+                        size: 36,
+                      ),
                     ),
-                  ),
+            ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,35 +98,17 @@ class _ProfileHeader extends StatelessWidget {
                   user.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF111827),
+                  style: text.titleLarge?.copyWith(
+                    color: _ink,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 8),
-                _ProfileInfoRow(
-                  icon: Icons.badge_outlined,
-                  label: user.nik?.isNotEmpty == true ? user.nik! : '-',
-                ),
-                const SizedBox(height: 6),
-                _ProfileInfoRow(
-                  icon: Icons.work_outline_rounded,
-                  label: user.position?.isNotEmpty == true
-                      ? user.position!
-                      : '-',
-                ),
-                const SizedBox(height: 6),
-                _ProfileInfoRow(icon: Icons.email_outlined, label: user.email),
-                const SizedBox(height: 6),
-                _ProfileInfoRow(
-                  icon: Icons.phone_outlined,
-                  label: user.phone?.isNotEmpty == true ? user.phone! : '-',
-                ),
-                const SizedBox(height: 6),
-                _ProfileInfoRow(
-                  icon: Icons.location_on_outlined,
-                  label: user.alamat?.isNotEmpty == true ? user.alamat! : '-',
+                const SizedBox(height: 4),
+                Text(
+                  user.position?.isNotEmpty == true ? user.position! : '-',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.bodyMedium?.copyWith(color: _muted),
                 ),
               ],
             ),
@@ -167,203 +117,138 @@ class _ProfileHeader extends StatelessWidget {
       ),
     );
   }
-}
 
-class _ProfileInfoRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
+  Widget _infoSection(UserModel user) {
+    return _section(
+      child: Column(
+        children: [
+          _info(Icons.badge_outlined, 'NIK', user.nik),
+          _info(Icons.email_outlined, 'Email', user.email),
+          _info(Icons.phone_outlined, 'Phone', user.phone),
+          _info(Icons.location_on_outlined, 'Address', user.alamat, last: true),
+        ],
+      ),
+    );
+  }
 
-  const _ProfileInfoRow({required this.icon, required this.label});
+  Widget _attendanceSection(UserAttendanceTotal total) {
+    final values = {
+      AttendanceStatus.present: total.present,
+      AttendanceStatus.late: total.late,
+      AttendanceStatus.leave: total.leave,
+      AttendanceStatus.absent: total.absent,
+    };
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 17, color: const Color(0xFF6B7280)),
-        const SizedBox(width: 7),
-        Flexible(
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF6B7280),
+    return _section(
+      child: Column(
+        children: [
+          for (final item in _stats)
+            _stat(
+              icon: item.$3,
+              label: item.$2,
+              value: values[item.$1] ?? 0,
+              color: item.$1.accentColor,
+              last: item == _stats.last,
             ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
-}
 
-class _AttendanceStatsGrid extends StatelessWidget {
-  final UserAttendanceTotal total;
+  Widget _info(
+    IconData icon,
+    String label,
+    String? value, {
+    bool last = false,
+  }) {
+    return _row(
+      icon: icon,
+      label: label,
+      value: value?.isNotEmpty == true ? value! : '-',
+      last: last,
+    );
+  }
 
-  const _AttendanceStatsGrid({required this.total});
+  Widget _stat({
+    required IconData icon,
+    required String label,
+    required int value,
+    required Color color,
+    required bool last,
+  }) {
+    return _row(
+      icon: icon,
+      label: label,
+      value: '$value',
+      color: color,
+      valueWeight: FontWeight.w700,
+      last: last,
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
+  Widget _row({
+    required IconData icon,
+    required String label,
+    required String value,
+    Color color = _muted,
+    FontWeight valueWeight = FontWeight.w500,
+    bool last = false,
+  }) {
+    final text = Theme.of(context).textTheme;
+
+    return Column(
       children: [
-        _AttendanceStatCard(
-          icon: Icons.check_circle_outline_rounded,
-          label: 'Attendance',
-          value: total.attendance.toString(),
-          color: const Color(0xFF16A34A),
-        ),
-        _AttendanceStatCard(
-          icon: Icons.schedule_rounded,
-          label: 'Late',
-          value: total.late.toString(),
-          color: const Color(0xFFF59E0B),
-        ),
-        _AttendanceStatCard(
-          icon: Icons.description_outlined,
-          label: 'Permission',
-          value: total.permission.toString(),
-          color: const Color(0xFF2563EB),
-        ),
-        _AttendanceStatCard(
-          icon: Icons.cancel_outlined,
-          label: 'Alpha',
-          value: total.alpha.toString(),
-          color: const Color(0xFFDC2626),
-        ),
-      ],
-    );
-  }
-}
-
-class _AttendanceStatCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
-
-  const _AttendanceStatCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cardWidth = (MediaQuery.sizeOf(context).width - 52) / 2;
-
-    return SizedBox(
-      width: cardWidth,
-      height: 140,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Row(
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(14),
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                style: text.bodyMedium?.copyWith(color: _muted),
               ),
-              child: Icon(icon, size: 23, color: color),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF111827),
-                  ),
+            const SizedBox(width: 12),
+            Flexible(
+              child: Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+                style: text.bodyMedium?.copyWith(
+                  color: _ink,
+                  fontWeight: valueWeight,
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF6B7280),
-                  ),
-                ),
-              ],
+              ),
             ),
           ],
         ),
-      ),
+        if (!last) const Divider(height: 22, color: _line),
+      ],
     );
   }
-}
 
-class _ProfileError extends StatelessWidget {
-  final String message;
+  Widget _section({required Widget child}) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: _line),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Padding(padding: const EdgeInsets.all(14), child: child),
+    );
+  }
 
-  const _ProfileError({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _message(String message) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Text(
           message,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFFB91C1C),
-          ),
+          style: const TextStyle(color: Color(0xFFB91C1C)),
         ),
       ),
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  final String subtitle;
-
-  const _SectionTitle({required this.title, required this.subtitle});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 19,
-            fontWeight: FontWeight.w900,
-            color: Color(0xFF111827),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF6B7280),
-          ),
-        ),
-      ],
     );
   }
 }

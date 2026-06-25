@@ -51,27 +51,37 @@ class AttendanceHelper {
 
   static int countPresent(List<AttendanceModel> attendances) {
     return attendances.where((attendance) {
-      return attendance.status == AttendanceStatus.hadir;
+      return attendance.status == AttendanceStatus.present;
     }).length;
   }
 
   // =========================
-  // COUNT IZIN
+  // COUNT LATE
   // =========================
 
-  static int countIzin(List<AttendanceModel> attendances) {
+  static int countLate(List<AttendanceModel> attendances) {
     return attendances.where((attendance) {
-      return attendance.status == AttendanceStatus.izin;
+      return attendance.status == AttendanceStatus.late;
     }).length;
   }
 
   // =========================
-  // COUNT ALPHA
+  // COUNT LEAVE
   // =========================
 
-  static int countAlpha(List<AttendanceModel> attendances) {
+  static int countLeave(List<AttendanceModel> attendances) {
     return attendances.where((attendance) {
-      return attendance.status == AttendanceStatus.alpha;
+      return attendance.status == AttendanceStatus.leave;
+    }).length;
+  }
+
+  // =========================
+  // COUNT ABSENT
+  // =========================
+
+  static int countAbsent(List<AttendanceModel> attendances) {
+    return attendances.where((attendance) {
+      return attendance.status == AttendanceStatus.absent;
     }).length;
   }
 

@@ -1,7 +1,7 @@
 // File: attendance_model.dart
 import 'package:flutter/material.dart';
 
-enum AttendanceStatus { hadir, izin, alpha }
+enum AttendanceStatus { present, late, leave, absent }
 
 class AttendanceModel {
   final int? id;
@@ -43,59 +43,84 @@ class AttendanceModel {
     );
   }
 
-  static AttendanceStatus _parseStatus(String status) {
-    switch (status) {
-      case 'HADIR':
-        return AttendanceStatus.hadir;
-
-      case 'IZIN':
-        return AttendanceStatus.izin;
-
+  static AttendanceStatus _parseStatus(dynamic status) {
+    switch (status?.toString().toUpperCase()) {
+      case 'PRESENT':
+        return AttendanceStatus.present;
+      case 'LATE':
+        return AttendanceStatus.late;
+      case 'LEAVE':
+        return AttendanceStatus.leave;
+      case 'ABSENT':
       default:
-        return AttendanceStatus.alpha;
+        return AttendanceStatus.absent;
     }
   }
 }
 
-
-
 extension AttendanceStatusExtension on AttendanceStatus {
   String get label {
     switch (this) {
-      case AttendanceStatus.hadir:
+      case AttendanceStatus.present:
         return 'P';
-
-      case AttendanceStatus.izin:
+      case AttendanceStatus.late:
         return 'L';
-
-      case AttendanceStatus.alpha:
+      case AttendanceStatus.leave:
+        return 'LV';
+      case AttendanceStatus.absent:
         return 'A';
     }
   }
 
   Color get color {
     switch (this) {
-      case AttendanceStatus.hadir:
-        return Colors.green.shade200;
+      case AttendanceStatus.present:
+        return const Color(0xFFBBF7D0);
+      case AttendanceStatus.late:
+        return const Color(0xFFE5E7EB);
+      case AttendanceStatus.leave:
+        return const Color(0xFFFDE68A);
+      case AttendanceStatus.absent:
+        return const Color(0xFFFCA5A5);
+    }
+  }
 
-      case AttendanceStatus.izin:
-        return Colors.orange.shade200;
+  Color get foregroundColor {
+    switch (this) {
+      case AttendanceStatus.present:
+        return const Color(0xFF166534);
+      case AttendanceStatus.late:
+        return const Color(0xFF374151);
+      case AttendanceStatus.leave:
+        return const Color(0xFF92400E);
+      case AttendanceStatus.absent:
+        return const Color(0xFF991B1B);
+    }
+  }
 
-      case AttendanceStatus.alpha:
-        return Colors.red.shade200;
+  Color get accentColor {
+    switch (this) {
+      case AttendanceStatus.present:
+        return const Color(0xFF22C55E);
+      case AttendanceStatus.late:
+        return const Color(0xFF6B7280);
+      case AttendanceStatus.leave:
+        return const Color(0xFFF59E0B);
+      case AttendanceStatus.absent:
+        return const Color(0xFFDC2626);
     }
   }
 
   String get apiValue {
     switch (this) {
-      case AttendanceStatus.hadir:
-        return 'HADIR';
-
-      case AttendanceStatus.izin:
-        return 'IZIN';
-
-      case AttendanceStatus.alpha:
-        return 'ALPHA';
+      case AttendanceStatus.present:
+        return 'PRESENT';
+      case AttendanceStatus.late:
+        return 'LATE';
+      case AttendanceStatus.leave:
+        return 'LEAVE';
+      case AttendanceStatus.absent:
+        return 'ABSENT';
     }
   }
 }

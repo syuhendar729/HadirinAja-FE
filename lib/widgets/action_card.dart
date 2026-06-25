@@ -1,11 +1,8 @@
-// file: lib/widgets/action_card.dart
-
 import 'package:flutter/material.dart';
 
 class ActionCard extends StatelessWidget {
   final String title;
   final String subtitle;
-  final String? meta;
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
@@ -16,43 +13,31 @@ class ActionCard extends StatelessWidget {
     required this.subtitle,
     required this.icon,
     required this.onTap,
-    this.meta,
     this.color = const Color(0xFF2563EB),
   });
 
   @override
   Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
-      elevation: 0,
-      shadowColor: color.withValues(alpha: 0.16),
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Ink(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFE5E7EB)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 18,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
           child: Row(
             children: [
               Container(
-                width: 58,
-                height: 58,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, size: 30, color: color),
+                child: Icon(icon, color: color, size: 28),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -63,53 +48,31 @@ class ActionCard extends StatelessWidget {
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF111827),
+                      style: text.bodyLarge?.copyWith(
+                        color: const Color(0xFF111827),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 4),
                     Text(
                       subtitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        height: 1.35,
-                        fontSize: 13,
-                        color: Color(0xFF6B7280),
+                      style: text.bodySmall?.copyWith(
+                        color: const Color(0xFF6B7280),
+                        fontSize: 14,
+                        height: 1.3,
                       ),
                     ),
-                    if (meta != null) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        meta!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: color,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
               const SizedBox(width: 10),
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF9FAFB),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE5E7EB)),
-                ),
-                child: const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 15,
-                  color: Color(0xFF374151),
-                ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Color(0xFF9CA3AF),
+                size: 28,
               ),
             ],
           ),

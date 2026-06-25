@@ -1,5 +1,3 @@
-// file: lib/pages/home_page.dart
-
 import 'package:flutter/material.dart';
 
 import '../models/user_model.dart';
@@ -9,6 +7,11 @@ import '../widgets/home_header.dart';
 import 'check_in_page.dart';
 import 'permission_page.dart';
 
+const _bg = Color(0xFFF7F7F8);
+const _ink = Color(0xFF111827);
+const _line = Color(0xFFE5E7EB);
+const _primary = Color(0xFF2563EB);
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -17,313 +20,145 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late final Future<UserModel> _userFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _userFuture = UserService.getUser();
-  }
+  late final Future<UserModel> _future = UserService.getUser();
 
   @override
   Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FB),
+      backgroundColor: _bg,
       body: SafeArea(
         child: FutureBuilder<UserModel>(
-          future: _userFuture,
-          builder: (context, snapshot) {
-            final user = snapshot.data;
+          future: _future,
+          builder: (context, snap) {
+            final user = snap.data;
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const _TopBar(),
-                  const SizedBox(height: 18),
-                  if (snapshot.connectionState == ConnectionState.waiting)
-                    const _HeaderLoadingCard()
-                  else if (snapshot.hasError)
-                    _ErrorCard(message: snapshot.error.toString())
-                  else
-                    HomeHeader(name: user?.name ?? '-'),
-                  const SizedBox(height: 22),
-                  if (user != null) _AttendanceSummaryCard(total: user.total),
-                  const SizedBox(height: 24),
-                  const _SectionTitle(
-                    title: 'Quick actions',
-                    subtitle: 'Choose what you need for today',
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              children: [
+                _topBar(text),
+                const SizedBox(height: 14),
+                if (snap.connectionState == ConnectionState.waiting)
+                  _section(
+                    child: const SizedBox(
+                      height: 118,
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  )
+                else if (snap.hasError)
+                  _message(snap.error.toString())
+                else
+                  HomeHeader(name: user?.name ?? '-'),
+                const SizedBox(height: 18),
+                Text(
+                  'Quick Actions',
+                  style: text.titleMedium?.copyWith(
+                    color: _ink,
+                    fontWeight: FontWeight.w700,
                   ),
-                  const SizedBox(height: 12),
-                  ActionCard(
-                    title: 'Check In',
-                    subtitle: 'Take a selfie and verify your location.',
-                    meta: 'Start attendance',
-                    icon: Icons.login_rounded,
-                    color: const Color(0xFF16A34A),
-                    onTap: () async {
-                      final success = await Navigator.push<bool>(
-                        context,
-                        MaterialPageRoute(builder: (_) => const CheckInPage()),
-                      );
-
-                      if (!context.mounted) {
-                        return;
-                      }
-
-                      if (success == true) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Check-in submitted successfully'),
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                  ActionCard(
-                    title: 'Permission',
-                    subtitle:
-                        'Request permission when you cannot attend on time.',
-                    meta: 'Request permission',
-                    icon: Icons.event_available_rounded,
-                    color: const Color(0xFFF59E0B),
-                    onTap: () async {
-                      final success = await Navigator.push<bool>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PermissionPage(),
+                ),
+                const SizedBox(height: 10),
+                _section(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      ActionCard(
+                        title: 'Check In',
+                        subtitle: 'Take a selfie and verify your location.',
+                        icon: Icons.login_rounded,
+                        color: _primary,
+                        onTap: () => _open(
+                          const CheckInPage(),
+                          'Check-in submitted successfully',
                         ),
-                      );
-
-                      if (!context.mounted) {
-                        return;
-                      }
-
-                      if (success == true) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Permission request submitted'),
-                          ),
-                        );
-                      }
-                    },
+                      ),
+                      const Divider(height: 1, color: _line),
+                      ActionCard(
+                        title: 'Leave',
+                        subtitle: 'Request leave when you cannot attend.',
+                        icon: Icons.event_available_rounded,
+                        color: const Color(0xFFF59E0B),
+                        onTap: () => _open(
+                          const PermissionPage(),
+                          'Leave request submitted',
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             );
           },
         ),
       ),
     );
   }
-}
 
-class _HeaderLoadingCard extends StatelessWidget {
-  const _HeaderLoadingCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 190,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-      ),
-      child: const Center(child: CircularProgressIndicator()),
-    );
-  }
-}
-
-class _ErrorCard extends StatelessWidget {
-  final String message;
-
-  const _ErrorCard({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFFCA5A5)),
-      ),
-      child: Text(
-        message,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: Color(0xFFB91C1C),
-        ),
-      ),
-    );
-  }
-}
-
-class _TopBar extends StatelessWidget {
-  const _TopBar();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _topBar(TextTheme text) {
     return Row(
       children: [
-        const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'HadirinAja',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF111827),
-                ),
-              ),
-              SizedBox(height: 4),
-            ],
+        Expanded(
+          child: Text(
+            'HadirinAja',
+            style: text.titleLarge?.copyWith(
+              color: _ink,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
-        IconButton.filledTonal(
+        IconButton(
           onPressed: () {},
-          icon: const Icon(Icons.notifications_none_rounded),
           tooltip: 'Notifications',
+          icon: const Icon(Icons.notifications_none_rounded),
           style: IconButton.styleFrom(
             backgroundColor: Colors.white,
-            foregroundColor: const Color(0xFF111827),
-            fixedSize: const Size(48, 48),
+            foregroundColor: _ink,
+            fixedSize: const Size(42, 42),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: Color(0xFFE5E7EB)),
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: _line),
             ),
           ),
         ),
       ],
     );
   }
-}
 
-class _AttendanceSummaryCard extends StatelessWidget {
-  final UserAttendanceTotal total;
+  Future<void> _open(Widget page, String message) async {
+    final success = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => page),
+    );
+    if (!mounted || success != true) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
 
-  const _AttendanceSummaryCard({required this.total});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
+  Widget _section({
+    required Widget child,
+    EdgeInsetsGeometry padding = const EdgeInsets.all(14),
+  }) {
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        border: Border.all(color: _line),
+        borderRadius: BorderRadius.circular(14),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 54,
-            height: 54,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF7ED),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.fact_check_rounded,
-              color: Color(0xFF16A34A),
-              size: 30,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${total.attendance} attendances recorded',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF111827),
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  'Late ${total.late} | Permission ${total.permission} | Alpha ${total.alpha}',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    height: 1.35,
-                    fontSize: 13,
-                    color: Color(0xFF6B7280),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-            decoration: BoxDecoration(
-              color: const Color(0xFFECFDF5),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              total.attendance.toString(),
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF16A34A),
-              ),
-            ),
-          ),
-        ],
-      ),
+      child: Padding(padding: padding, child: child),
     );
   }
-}
 
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  final String subtitle;
-
-  const _SectionTitle({required this.title, required this.subtitle});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 19,
-            fontWeight: FontWeight.w900,
-            color: Color(0xFF111827),
-          ),
+  Widget _message(String message) {
+    return _section(
+      child: Text(
+        message,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: const Color(0xFFB91C1C),
+          fontWeight: FontWeight.w600,
         ),
-        const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF6B7280),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

@@ -70,24 +70,24 @@ class UserModel {
 }
 
 class UserAttendanceTotal {
-  final int attendance;
+  final int present;
   final int late;
-  final int permission;
-  final int alpha;
+  final int leave;
+  final int absent;
 
   const UserAttendanceTotal({
-    required this.attendance,
+    required this.present,
     required this.late,
-    required this.permission,
-    required this.alpha,
+    required this.leave,
+    required this.absent,
   });
 
   factory UserAttendanceTotal.fromJson(Map<String, dynamic> json) {
     return UserAttendanceTotal(
-      attendance: UserModel._toInt(json['attendance']),
+      present: UserModel._toInt(json['present']),
       late: UserModel._toInt(json['late']),
-      permission: UserModel._toInt(json['permission']),
-      alpha: UserModel._toInt(json['alpha']),
+      leave: UserModel._toInt(json['leave']),
+      absent: UserModel._toInt(json['absent']),
     );
   }
 }

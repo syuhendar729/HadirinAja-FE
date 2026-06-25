@@ -35,14 +35,13 @@ class AttendanceService {
   // Create Attendance
   // ==============================================================
   static Future<AttendanceModel> createAttendance({
-    String status = 'ALPHA',
+    String status = 'ABSENT',
     required String location,
     String notes = 'On time',
     required String imageUrl,
     required double latitude,
     required double longitude,
   }) async {
-    print('createAttendance - Image URL: $imageUrl');
     final response = await ApiClient.post(
       endpoint: '/attendance', // endpoint
       body: {

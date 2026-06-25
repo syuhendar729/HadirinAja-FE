@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../config/app_config.dart';
+import '../models/attendance_model.dart';
 import '../services/attendance_service.dart';
 
 class CheckInPage extends StatefulWidget {
@@ -329,9 +330,8 @@ class _CheckInPageState extends State<CheckInPage> with WidgetsBindingObserver {
 
     try {
       final imageUrl = await AttendanceService.uploadImage(selfie.path);
-      print('Uploaded Image URL: $imageUrl');
       await AttendanceService.createAttendance(
-        status: 'HADIR',
+        status: AttendanceStatus.present.apiValue,
         location: _attendanceLocation,
         notes: 'Check-in selfie verified',
         imageUrl: imageUrl,
@@ -555,9 +555,6 @@ class _CameraFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cameraController = controller;
-    final shouldMirror =
-        cameraController?.description.lensDirection ==
-        CameraLensDirection.front;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(28),
@@ -778,7 +775,9 @@ class _ResultView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isSuccess ? const Color(0xFF16A34A) : const Color(0xFFDC2626);
+    final color = isSuccess
+        ? AttendanceStatus.present.accentColor
+        : AttendanceStatus.absent.accentColor;
     final backgroundColor = isSuccess
         ? const Color(0xFFEAFBF0)
         : const Color(0xFFFFF1F2);
@@ -828,7 +827,9 @@ class _ResultView extends StatelessWidget {
             child: FilledButton(
               onPressed: onPrimary,
               style: FilledButton.styleFrom(
-                backgroundColor: isSuccess ? const Color(0xFF16A34A) : color,
+                backgroundColor: isSuccess
+                    ? AttendanceStatus.present.accentColor
+                    : color,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
