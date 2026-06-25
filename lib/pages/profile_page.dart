@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_config.dart';
 import '../models/attendance_model.dart';
 import '../models/user_model.dart';
+import '../services/auth_service.dart';
 import '../services/user_service.dart';
+import '../utils/session_manager.dart';
+import 'login_page.dart';
 
-const _bg = Color(0xFFF7F7F8);
+const _teal = Color(AppColors.teal);
 const _ink = Color(0xFF111827);
 const _muted = Color(0xFF6B7280);
 const _line = Color(0xFFE5E7EB);
-const _primary = Color(0xFF2563EB);
 const _stats = [
   (AttendanceStatus.present, 'Present', Icons.check_circle_outline_rounded),
   (AttendanceStatus.late, 'Late', Icons.schedule_rounded),
@@ -25,37 +28,59 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   late final Future<UserModel> _future = UserService.getUser();
+  bool _isLoggingOut = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
-      appBar: AppBar(
-        title: const Text('Profile'),
-        centerTitle: true,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: _bg,
-        foregroundColor: _ink,
-      ),
+      backgroundColor: _teal,
       body: FutureBuilder<UserModel>(
         future: _future,
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
           }
           if (snap.hasError) return _message(snap.error.toString());
           if (snap.data == null) return _message('User data is empty');
 
           final user = snap.data!;
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          return Column(
             children: [
-              _profileHeader(user),
-              const SizedBox(height: 12),
-              _infoSection(user),
-              const SizedBox(height: 12),
-              _attendanceSection(user.total),
+              SizedBox(
+                height: MediaQuery.sizeOf(context).height * 0.38,
+                width: double.infinity,
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+                    child: _profileHeader(user),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(16, 34, 16, 24),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(56),
+                    ),
+                  ),
+                  child: ListView(
+                    padding: const EdgeInsets.only(bottom: 120),
+                    children: [
+                      _infoSection(user),
+                      const SizedBox(height: 12),
+                      _attendanceSection(user.total),
+                      const SizedBox(height: 18),
+                      _logoutButton(),
+                    ],
+                  ),
+                ),
+              ),
             ],
           );
         },
@@ -67,54 +92,62 @@ class _ProfilePageState extends State<ProfilePage> {
     final text = Theme.of(context).textTheme;
     final image = user.profilePicture;
 
-    return _section(
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              width: 64,
-              height: 64,
-              color: const Color(0xFFEFF6FF),
-              child: image == null || image.isEmpty
-                  ? const Icon(Icons.person_rounded, color: _primary, size: 36)
-                  : Image.network(
-                      image,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const Icon(
-                        Icons.person_rounded,
-                        color: _primary,
-                        size: 36,
-                      ),
+    return Column(
+      children: [
+        Text(
+          'Profile',
+          style: text.displaySmall?.copyWith(
+            color: Colors.white,
+            fontFamily: AppFonts.display,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const Spacer(),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: Container(
+            width: 96,
+            height: 96,
+            color: Colors.white.withValues(alpha: 0.18),
+            child: image == null || image.isEmpty
+                ? const Icon(
+                    Icons.person_rounded,
+                    color: Colors.white,
+                    size: 58,
+                  )
+                : Image.network(
+                    image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => const Icon(
+                      Icons.person_rounded,
+                      color: Colors.white,
+                      size: 58,
                     ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: text.titleLarge?.copyWith(
-                    color: _ink,
-                    fontWeight: FontWeight.w700,
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  user.position?.isNotEmpty == true ? user.position! : '-',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: text.bodyMedium?.copyWith(color: _muted),
-                ),
-              ],
-            ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 14),
+        Text(
+          user.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: text.headlineSmall?.copyWith(
+            color: Colors.white,
+            fontFamily: AppFonts.display,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          user.position?.isNotEmpty == true ? user.position! : '-',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: text.bodyMedium?.copyWith(color: Colors.white),
+        ),
+        const Spacer(),
+      ],
     );
   }
 
@@ -152,6 +185,46 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
         ],
       ),
+    );
+  }
+
+  Widget _logoutButton() {
+    return FilledButton.icon(
+      onPressed: _isLoggingOut ? null : _logout,
+      icon: _isLoggingOut
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.logout_rounded),
+      label: Text(_isLoggingOut ? 'Logging out...' : 'Logout'),
+      style: FilledButton.styleFrom(
+        backgroundColor: const Color(0xFF071952),
+        disabledBackgroundColor: const Color(0xFFEBF4F6),
+        foregroundColor: Colors.white,
+        minimumSize: const Size.fromHeight(54),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        textStyle: Theme.of(
+          context,
+        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),
+      ),
+    );
+  }
+
+  Future<void> _logout() async {
+    setState(() => _isLoggingOut = true);
+
+    try {
+      await AuthService.logout();
+    } finally {
+      await SessionManager.clearSession();
+    }
+
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (_) => false,
     );
   }
 

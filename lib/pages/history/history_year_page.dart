@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../config/app_config.dart';
 import '../../models/attendance_model.dart';
 import '../../services/attendance_service.dart';
 import '../../widgets/history/attendance_legend.dart';
 
-const _bg = Color(0xFFF7F7F8);
+const _teal = Color(AppColors.teal);
 const _ink = Color(0xFF111827);
 const _muted = Color(0xFF6B7280);
 const _line = Color(0xFFE5E7EB);
@@ -106,6 +107,27 @@ class _HistoryYearPageState extends State<HistoryYearPage> {
       )
       .toList();
 
+  double get _presentRate {
+    final workdays = _workdaysInMonth(_focused);
+    if (workdays == 0) return 0;
+    final present = _monthItems
+        .where((e) => e.status == AttendanceStatus.present)
+        .length;
+    return (present / workdays).clamp(0, 1);
+  }
+
+  int _workdaysInMonth(DateTime date) {
+    final now = DateTime.now();
+    final lastDay = date.year == now.year && date.month == now.month
+        ? now.day
+        : DateTime(date.year, date.month + 1, 0).day;
+
+    return List.generate(
+      lastDay,
+      (i) => DateTime(date.year, date.month, i + 1),
+    ).where((day) => day.weekday <= DateTime.friday).length;
+  }
+
   void _changeDate({int? month, int? year}) {
     final y = year ?? _focused.year;
     final m = month ?? _focused.month;
@@ -116,37 +138,71 @@ class _HistoryYearPageState extends State<HistoryYearPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
-      appBar: AppBar(
-        title: const Text('History'),
-        centerTitle: true,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: _bg,
-        foregroundColor: _ink,
-      ),
+      backgroundColor: _teal,
       body: FutureBuilder<List<AttendanceModel>>(
         future: _future,
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
           }
           if (snap.hasError) return _message(snap.error.toString());
 
           return RefreshIndicator(
             onRefresh: _load,
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              padding: EdgeInsets.zero,
               children: [
-                _filterBar(),
-                const SizedBox(height: 12),
-                _summary(),
-                const SizedBox(height: 12),
-                const AttendanceLegend(),
-                const SizedBox(height: 12),
-                _calendar(),
-                const SizedBox(height: 12),
-                _dayList(_selected ?? _focused),
+                SizedBox(
+                  height: MediaQuery.sizeOf(context).height * 0.50,
+                  child: SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 28, 20, 26),
+                      child: Column(
+                        children: [
+                          Text(
+                            'History',
+                            style: Theme.of(context).textTheme.displaySmall
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontFamily: AppFonts.display,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                          const Spacer(),
+                          _filterBar(),
+                          const SizedBox(height: 10),
+                          _summary(),
+                          const SizedBox(height: 10),
+                          _attendanceRate(),
+                          const SizedBox(height: 10),
+                          const AttendanceLegend(onTeal: true),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  constraints: BoxConstraints(
+                    minHeight: MediaQuery.sizeOf(context).height * 0.50,
+                  ),
+                  padding: const EdgeInsets.fromLTRB(16, 34, 16, 130),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(56),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      _calendar(),
+                      const SizedBox(height: 12),
+                      _dayList(_selected ?? _focused),
+                    ],
+                  ),
+                ),
               ],
             ),
           );
@@ -156,6 +212,7 @@ class _HistoryYearPageState extends State<HistoryYearPage> {
   }
 
   Widget _filterBar() => _section(
+    onTeal: true,
     padding: const EdgeInsets.all(8),
     child: Row(
       children: [
@@ -194,7 +251,7 @@ class _HistoryYearPageState extends State<HistoryYearPage> {
       decoration: InputDecoration(
         isDense: true,
         filled: true,
-        fillColor: _bg,
+        fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
           vertical: 10,
@@ -220,6 +277,7 @@ class _HistoryYearPageState extends State<HistoryYearPage> {
   Widget _summary() {
     final text = Theme.of(context).textTheme;
     return _section(
+      onTeal: true,
       child: Row(
         children: [
           for (final item in _statuses)
@@ -229,14 +287,14 @@ class _HistoryYearPageState extends State<HistoryYearPage> {
                   Text(
                     '${_monthItems.where((e) => e.status == item.$1).length}',
                     style: text.titleLarge?.copyWith(
-                      color: item.$1.accentColor,
+                      color: Colors.white,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     item.$2,
-                    style: text.labelMedium?.copyWith(color: _muted),
+                    style: text.labelMedium?.copyWith(color: Colors.white),
                   ),
                 ],
               ),
@@ -246,7 +304,52 @@ class _HistoryYearPageState extends State<HistoryYearPage> {
     );
   }
 
+  Widget _attendanceRate() {
+    final text = Theme.of(context).textTheme;
+    final percent = (_presentRate * 100).round();
+
+    return _section(
+      onTeal: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Attendance Rate',
+                  style: text.bodyMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Text(
+                '$percent%',
+                style: text.bodyMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: _presentRate,
+              minHeight: 8,
+              color: Colors.white,
+              backgroundColor: Colors.white.withValues(alpha: 0.25),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _calendar() => _section(
+    border: false,
     padding: const EdgeInsets.fromLTRB(8, 6, 8, 10),
     child: TableCalendar<AttendanceModel>(
       firstDay: DateTime(2020),
@@ -314,6 +417,7 @@ class _HistoryYearPageState extends State<HistoryYearPage> {
     final items = _events(date);
 
     return _section(
+      border: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -397,11 +501,19 @@ class _HistoryYearPageState extends State<HistoryYearPage> {
   Widget _section({
     required Widget child,
     EdgeInsetsGeometry padding = const EdgeInsets.all(14),
+    bool onTeal = false,
+    bool border = true,
   }) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: _line),
+        color: onTeal
+            ? Colors.white.withValues(alpha: 0.14)
+            : const Color(0xFFF7F7F8),
+        border: border
+            ? Border.all(
+                color: onTeal ? Colors.white.withValues(alpha: 0.28) : _line,
+              )
+            : null,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Padding(padding: padding, child: child),

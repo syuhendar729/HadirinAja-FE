@@ -8,3 +8,13 @@ class AppConfig {
 
   static bool get isDevelopment => appEnv == 'development';
 }
+
+class AppFonts {
+  static const display = 'SF Pro Display';
+  static const body = 'SF Mono';
+  static const mono = body;
+}
+
+class AppColors {
+  static const teal = 0xFF088395;
+}

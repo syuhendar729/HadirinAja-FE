@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../../models/attendance_model.dart';
 
 class AttendanceLegend extends StatelessWidget {
-  const AttendanceLegend({super.key});
+  final bool onTeal;
+
+  const AttendanceLegend({super.key, this.onTeal = false});
 
   @override
   Widget build(BuildContext context) {
@@ -16,8 +18,12 @@ class AttendanceLegend extends StatelessWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        color: onTeal ? Colors.white.withValues(alpha: 0.14) : Colors.white,
+        border: Border.all(
+          color: onTeal
+              ? Colors.white.withValues(alpha: 0.28)
+              : const Color(0xFFE5E7EB),
+        ),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Padding(
@@ -27,7 +33,7 @@ class AttendanceLegend extends StatelessWidget {
           runSpacing: 8,
           children: [
             for (final item in items)
-              _LegendItem(status: item.$1, label: item.$2),
+              _LegendItem(status: item.$1, label: item.$2, onTeal: onTeal),
           ],
         ),
       ),
@@ -38,8 +44,13 @@ class AttendanceLegend extends StatelessWidget {
 class _LegendItem extends StatelessWidget {
   final AttendanceStatus status;
   final String label;
+  final bool onTeal;
 
-  const _LegendItem({required this.status, required this.label});
+  const _LegendItem({
+    required this.status,
+    required this.label,
+    required this.onTeal,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +76,7 @@ class _LegendItem extends StatelessWidget {
             Text(
               label,
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: const Color(0xFF374151),
+                color: onTeal ? Colors.white : const Color(0xFF374151),
                 fontWeight: FontWeight.w600,
               ),
             ),
